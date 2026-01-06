@@ -1,5 +1,6 @@
 "use client"
 
+import Image from "next/image"
 import { Skeleton } from "@/components/ui/skeleton"
 
 interface CryptoDataRow {
@@ -100,9 +101,13 @@ export default function CryptoTable({ data, loading }: CryptoTableProps) {
               >
                 <td className="px-6 py-4">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center text-primary-foreground font-semibold text-sm">
-                      {row.icon}
-                    </div>
+                    <Image 
+                      src={row.icon} 
+                      alt={row.name} 
+                      width={32}
+                      height={32}
+                      className="w-8 h-8 rounded-full"
+                    />
                     <div>
                       <p className="font-semibold text-foreground">{row.name}</p>
                       <p className="text-sm text-muted-foreground">{row.symbol}</p>

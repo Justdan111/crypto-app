@@ -1,71 +1,42 @@
 "use client"
 
-import { useState, useEffect } from "react"
 import CryptoTable from "@/components/crypto-table"
 import DashboardHeader from "@/components/dashboard-header"
-
-interface CryptoData {
-  id: string
-  name: string
-  symbol: string
-  icon: string
-  price: number
-  change24h: number
-  marketCap: number
-}
+import { useCrypto } from "@/utils/useCrypto"
 
 export default function Home() {
-  const [cryptoData, setCryptoData] = useState<CryptoData[]>([])
-  const [loading, setLoading] = useState(true)
-  const [lastUpdate, setLastUpdate] = useState<Date>(new Date())
+  const { data, isLoading, error, refetch, dataUpdatedAt } = useCrypto();
 
-  const fetchCryptoData = async () => {
-    setLoading(true)
-    try {
-      const response = await fetch(
-        "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum,cardano,solana,polkadot,ripple,litecoin,dogecoin&vs_currencies=usd&include_24hr_change=true&include_market_cap=true",
-      )
-      const data = await response.json()
+  const transformedData = data?.map((coin) => ({
+    id: coin.id,
+    name: coin.name,
+    symbol: coin.symbol.toUpperCase(),
+    icon: coin.image,
+    price: coin.current_price,
+    change24h: coin.price_change_percentage_24h,
+    marketCap: coin.market_cap,
+  })) ?? [];
 
-      const coins = [
-        { id: "bitcoin", name: "Bitcoin", symbol: "BTC", icon: "₿" },
-        { id: "ethereum", name: "Ethereum", symbol: "ETH", icon: "Ξ" },
-        { id: "cardano", name: "Cardano", symbol: "ADA", icon: "₳" },
-        { id: "solana", name: "Solana", symbol: "SOL", icon: "◎" },
-        { id: "polkadot", name: "Polkadot", symbol: "DOT", icon: "●" },
-        { id: "ripple", name: "Ripple", symbol: "XRP", icon: "✕" },
-        { id: "litecoin", name: "Litecoin", symbol: "LTC", icon: "Ł" },
-        { id: "dogecoin", name: "Dogecoin", symbol: "DOGE", icon: "🐕" },
-      ]
+  const lastUpdate = new Date(dataUpdatedAt);
 
-      const formatted = coins.map((coin) => ({
-        id: coin.id,
-        name: coin.name,
-        symbol: coin.symbol,
-        icon: coin.icon,
-        price: data[coin.id]?.usd || 0,
-        change24h: data[coin.id]?.usd_24h_change || 0,
-        marketCap: data[coin.id]?.usd_market_cap || 0,
-      }))
-
-      setCryptoData(formatted)
-      setLastUpdate(new Date())
-    } catch (error) {
-      console.error("Failed to fetch crypto data:", error)
-    } finally {
-      setLoading(false)
-    }
+  if (error) {
+    return (
+      <main className="min-h-screen bg-background">
+        <DashboardHeader lastUpdate={lastUpdate} onRefresh={refetch} />
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="bg-destructive/10 border border-destructive rounded-lg p-6 text-center">
+            <p className="text-destructive font-medium">Failed to load crypto data. Please try again.</p>
+          </div>
+        </div>
+      </main>
+    )
   }
-
-  useEffect(() => {
-    fetchCryptoData()
-  }, [])
 
   return (
     <main className="min-h-screen bg-background">
-      <DashboardHeader lastUpdate={lastUpdate} onRefresh={fetchCryptoData} />
+      <DashboardHeader lastUpdate={lastUpdate} onRefresh={refetch} />
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <CryptoTable data={cryptoData} loading={loading} />
+        <CryptoTable data={transformedData} loading={isLoading} />
       </div>
     </main>
   )

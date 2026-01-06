@@ -1,13 +1,21 @@
 import { useQuery } from '@tanstack/react-query';
-import { fetchCryto } from '@/lib/api';
+import { fetchCrypto } from '@/lib/api';
 
-
+export interface CryptoData {
+  id: string;
+  name: string;
+  symbol: string;
+  image: string;
+  current_price: number;
+  price_change_percentage_24h: number;
+  market_cap: number;
+}
 
 export const useCrypto = () => {
-    return useQuery({
+    return useQuery<CryptoData[]>({
         queryKey: ['cryptoData'],
-        queryFn: fetchCryto,
-        refetchInterval: 30000, // Refetch every 60 seconds 
+        queryFn: fetchCrypto,
+        refetchInterval: 30000,
         staleTime: 20000
     });
-    }
+};
